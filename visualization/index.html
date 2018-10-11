@@ -34,10 +34,15 @@
     font-size: 12px;
     display: none;
   }
+  img {
+    width: 100%;
+    height: auto;
+  }
   </style>
   <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 <body>
+  <img src="Static Open Cases Graphic.png" width="240px" height="125px">
   <svg></svg>
   <script>
 
@@ -250,6 +255,11 @@
     var width = +parseInt(svg.attr("width")) - margin.left - margin.right,
         height = +parseInt(svg.attr("height")) - margin.top - margin.bottom;
 
+    if (on_mobile){
+      width = 0.9*width;
+      height = 0.75*height;
+    }
+
     var x = d3.scaleLinear().range([0, width]);
     var y = d3.scaleBand().range([height, 0]);
 
@@ -299,32 +309,38 @@
   }
 
   var on_mobile = navigator.userAgent.toLowerCase().includes("mobile");
-
-  var margin = {top: 20, right: 20, bottom: 30, left: 80, barmargin: 3},
-      radius = 2,
-      offset = 21;
-
   var svg = d3.select("svg");
-  var g = svg.append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var img = d3.select("img");
 
-  var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+  if (on_mobile){
+    svg.remove();
+  } else {
+    img.remove();
+    var margin = {top: 20, right: 20, bottom: 30, left: 80, barmargin: 3},
+        radius = 2,
+        offset = 21;
 
-  var year_and_amt_data = null,
-      defendant_dots = null;
 
-  d3.json("cases_length_amt_data.json", function(error, data) {
-    	if (error) throw error;
-  }).then(function(data){
-    volume_data = getVolume(data);
-    year_and_amt_data = volume_data[0];
-    defendant_dots = volume_data[1];
-    draw(year_and_amt_data, defendant_dots);
-    // Redraw based on the new size whenever the browser window is resized.
-    window.addEventListener("resize", function(){
-      redraw(year_and_amt_data, defendant_dots);
+    var g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+
+    var year_and_amt_data = null,
+        defendant_dots = null;
+
+    d3.json("cases_length_amt_data.json", function(error, data) {
+        if (error) throw error;
+    }).then(function(data){
+      volume_data = getVolume(data);
+      year_and_amt_data = volume_data[0];
+      defendant_dots = volume_data[1];
+      draw(year_and_amt_data, defendant_dots);
+      // Redraw based on the new size whenever the browser window is resized.
+      window.addEventListener("resize", function(){
+        redraw(year_and_amt_data, defendant_dots);
+      });
     });
-  });
-
+  }
   </script>
 </body>
