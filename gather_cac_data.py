@@ -24,8 +24,9 @@ class MetadataForYear:
         self.id_of_last_case = ''
         self.total_cases = 0
         self.cac_cases = 0
-        self.cac_js_cases = 0
-        self.cac_open_cases = 0
+        self.cac_defendants = 0
+        self.cac_js_defendants = 0
+        self.cac_open_case_defendants = 0
         self.discounted_cases = []
         self.avg_months_taken_for_judgement_satisfied = timedelta()
         self.avg_denominator = 0
@@ -128,6 +129,7 @@ def write_metadata(metadata_sheet, metadata_years_written, chart_sheet, \
         metadata_sheet.write(metadata_years_written, 4, metadata.id_of_last_case)
         metadata_sheet.write(metadata_years_written, 5, metadata.total_cases)
         metadata_sheet.write(metadata_years_written, 6, metadata.cac_cases)
+        metadata_sheet.write(metadata_years_written, 7, metadata.cac_defendants)
         if year >= 2007:
             chart_sheet.write(chart_years_written, 0, year)
             chart_sheet.write(chart_years_written, 1, metadata.cac_cases)
@@ -137,23 +139,23 @@ def write_metadata(metadata_sheet, metadata_years_written, chart_sheet, \
                 chart_sheet.write(chart_years_written, 2, float('%.2f'%0))
             chart_years_written += 1
         try:
-            metadata_sheet.write(metadata_years_written, 7, float('%.2f'%(100*(metadata.cac_cases/metadata.total_cases))))
+            metadata_sheet.write(metadata_years_written, 8, float('%.2f'%(100*(metadata.cac_cases/metadata.total_cases))))
         except:
-            metadata_sheet.write(metadata_years_written, 7, float('%.2f'%0))
-        metadata_sheet.write(metadata_years_written, 8, metadata.cac_js_cases)
+            metadata_sheet.write(metadata_years_written, 8, float('%.2f'%0))
+        metadata_sheet.write(metadata_years_written, 9, metadata.cac_js_defendants)
         try:
-            metadata_sheet.write(metadata_years_written, 9, float('%.2f'%(100*(metadata.cac_js_cases/metadata.cac_cases))))
+            metadata_sheet.write(metadata_years_written, 10, float('%.2f'%(100*(metadata.cac_js_defendants/metadata.cac_defendants))))
         except:
-            metadata_sheet.write(metadata_years_written, 9, float('%.2f'%0))
-        metadata_sheet.write(metadata_years_written, 10, metadata.cac_open_cases)
+            metadata_sheet.write(metadata_years_written, 10, float('%.2f'%0))
+        metadata_sheet.write(metadata_years_written, 11, metadata.cac_open_case_defendants)
 
         if metadata.avg_denominator > 0:
             metadata.avg_months_taken_for_judgement_satisfied /= metadata.avg_denominator
-            metadata_sheet.write(metadata_years_written, 11, \
+            metadata_sheet.write(metadata_years_written, 12, \
                 float('%.2f'%(metadata.avg_months_taken_for_judgement_satisfied/one_year)))
         else:
-            metadata_sheet.write(metadata_years_written, 11, 0)
-        metadata_sheet.write(metadata_years_written, 12, ','.join(metadata.discounted_cases))
+            metadata_sheet.write(metadata_years_written, 12, 0)
+        metadata_sheet.write(metadata_years_written, 13, ','.join(metadata.discounted_cases))
         metadata_years_written += 1
 
     additional_lines_written = metadata_years_written+2
@@ -323,7 +325,7 @@ def create_defendant_string(defendant_name):
 
 def main():
     #SET UP OUTPUT FILE
-    template_file = 'credit_acceptance_corporation_case_data.xlsx'
+    template_file = 'template.xlsx'
     read_workbook = open_workbook(template_file)
     write_workbook = copy(read_workbook) # a writable copy (I can't read values out of this, only write to it)
     metadata_sheet = write_workbook.get_sheet(0)
@@ -459,6 +461,7 @@ def main():
             year_metadata[year].total_cases += 1
 
             if credit_acceptance_string in page_content:
+                year_metadata[year].cac_cases += 1
                 cac_index = page_content.index(credit_acceptance_string)
 
                 #Discount cases in which 'credit acceptance ...' is not the plaintiff
@@ -510,8 +513,6 @@ def main():
                 for i, _ in enumerate(defendant_numbers):
                     defendant_numbers[i] = defendant_numbers[i][:defendant_numbers[i].index(nbsp)]
                 num_defendants = len(defendant_numbers)
-                if num_defendants > 1:
-                    year_metadata[year].total_cases += (num_defendants - 1)
 
                 # BANKRUPTCY FILED
                 bankruptcy_notices = defaultdict(set)
@@ -627,8 +628,8 @@ def main():
                         closed_agg.total_defendants += 1
                         closed_agg.unique_defendants.add(defendant)
 
-                        year_metadata[year].cac_js_cases += 1
-                        year_metadata[year].cac_cases += 1
+                        year_metadata[year].cac_js_defendants += 1
+                        year_metadata[year].cac_defendants += 1
                     else:
                         date_of_last_update_to_case = re.findall(raw_date_string, page_content)[-1]
                         date_of_last_update_to_case = date_of_last_update_to_case\
@@ -651,8 +652,8 @@ def main():
                                 float('%.2f'%((date_of_last_update_to_case-date_filed)/one_year)), \
                                 sum_of_defualt_judgments))
 
-                        year_metadata[year].cac_open_cases += 1
-                        year_metadata[year].cac_cases += 1
+                        year_metadata[year].cac_open_case_defendants += 1
+                        year_metadata[year].cac_defendants += 1
 
                     if open_cases_written % 1000 == 0:
                         #Prints to report on progress of data analysis
