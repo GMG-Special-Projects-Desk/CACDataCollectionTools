@@ -1,210 +1,218 @@
 <!-- MODIFIED FROM: https://bl.ocks.org/alandunning/7008d0332cc28a826b37b3cf6e7bd998 -->
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-body {
-  margin: 15px;
-  background-color: #F1F3F3
-}
-.bar {
-	fill: blue;
-  opacity: 0.1;
-}
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #D4D8DA;
-  stroke-width: 1px;
-  shape-rendering: crispEdges;
-}
-.x path {
-	display: none;
-}
-.toolTip {
-  text-align: center;
-  color: white;
-  background: black;
-  padding: .5em;
-  border-radius: 2px;
-  box-shadow: 0px 0px 2px 0px #a6a6a6;
-  opacity: 0.8;
-  position: absolute;
-  font-family: Helvetica;
-  font-size: 12px;
-  display: none;
-}
-</style>
-<svg width="960" height="500"></svg>
-<script src="https://d3js.org/d3.v4.min.js"></script>
-<script>
-function getVolume(data){
-  year_data = [0,0,0,0,0];
-  amt_data = [0,0,0,0,0];
-  defendant_dots = [];
-  total_defendants = 0;
-  data.forEach(function(d){
-    total_defendants += 1;
-    name = d[0];
-    years = d[1];
-    amt = d[2];
-
-    if (years <= 5){
-        year_data[0] += 1;
-        if (amt){
-            amt_data[0] += amt;
-        }
-        bucket = "< 5 Years";
-        cy = offset + y(bucket);
-        defendant_dots.push({
-          "bucket": bucket,
-          "name": "Debtor "+total_defendants,
-          "amt": amt, "yrs": years,
-          "fill": "red"
-        });
-    } else if (years > 5 && years <= 10) {
-        year_data[1] += 1;
-        if (amt) {
-            amt_data[1] += amt;
-        }
-        bucket = "5 - 10 Years";
-        defendant_dots.push({
-          "bucket": bucket,
-          "name": "Debtor "+total_defendants,
-          "amt": amt, "yrs": years,
-          "fill": "blue"
-        });
-    } else if (years > 10 && years <= 15) {
-        year_data[2] += 1;
-        if (amt) {
-            amt_data[2] += amt;
-        }
-        bucket = "10 - 15 Years";
-        defendant_dots.push({
-          "bucket": bucket,
-          "name": "Debtor "+total_defendants,
-          "amt": amt, "yrs": years,
-          "fill": "purple"
-        });
-    } else if (years > 15 && years <= 20) {
-        year_data[3] += 1;
-        if (amt) {
-            amt_data[3] += amt;
-        }
-        bucket = "15 - 20 Years";
-        defendant_dots.push({
-          "bucket": bucket,
-          "name": "Debtor "+total_defendants,
-          "amt": amt, "yrs": years,
-          "fill": "orange"
-        });
-    } else if (years > 20) {
-        year_data[4] += 1;
-        if (amt) {
-            amt_data[4] += amt;
-        }
-        bucket = "> 20 years";
-        defendant_dots.push({
-          "bucket": bucket,
-          "name": "Debtor "+total_defendants,
-          "amt": amt, "yrs": years,
-          "fill": "green"
-        });
-    }
-  });
-  year_and_amt_data = [
-    {"bucket": "> 20 years", "num_defendants": year_data[4], "amt": amt_data[4]},
-    {"bucket": "15 - 20 Years", "num_defendants": year_data[3], "amt": amt_data[3]},
-    {"bucket": "10 - 15 Years", "num_defendants": year_data[2], "amt": amt_data[2]},
-    {"bucket": "5 - 10 Years", "num_defendants": year_data[1], "amt": amt_data[1]},
-    {"bucket": "< 5 Years", "num_defendants": year_data[0], "amt": amt_data[0]}
-  ];
-  return [year_and_amt_data, defendant_dots];
-}
-
-var svg = d3.select("svg"),
-    margin = {top: 20, right: 20, bottom: 30, left: 80, barmargin: 3},
-    width = +svg.attr("width") - margin.left - margin.right,
-    height = +svg.attr("height") - margin.top - margin.bottom,
-    radius = 2,
-    offset = 21;
-
-var tooltip = d3.select("body").append("div").attr("class", "toolTip");
-
-var x = d3.scaleLinear().range([0, width]);
-var y = d3.scaleBand().range([height, 0]);
-
-var g = svg.append("g")
-		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-d3.json("cases_length_amt_data.json", function(error, data) {
-  	if (error) throw error;
-
-    [data, defendant_dots] = getVolume(data);
-
-  	x.domain([0, d3.max(data, function(d) { return d.num_defendants; })]);
-    y.domain(data.map(function(d) { return d.bucket; })).padding(0.1);
-
-    g.append("g")
-        .attr("class", "x axis")
-       	.attr("transform", "translate(0," + height + ")")
-      	.call(d3.axisBottom(x).ticks(5).tickFormat(function(d) { return parseInt(d); }).tickSizeInner([-height]));
-
-    g.append("g")
-        .attr("class", "y axis")
-        .call(d3.axisLeft(y));
-
-    g.selectAll(".bar")
-        .data(data)
-        .enter().append("rect")
-        .attr("class", "bar")
-        .attr("x", 0)
-        .attr("height", y.bandwidth())
-        .attr("y", function(d) { return y(d.bucket); })
-        .attr("width", function(d) { return x(d.num_defendants); });
-
-    bucket_to_width_mapping = {};
-
+<head>
+  <style>
+  body {
+    margin: 15px;
+    background-color: #F1F3F3
+  }
+  .bar {
+  	fill: blue;
+    opacity: 0.1;
+  }
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #D4D8DA;
+    stroke-width: 1px;
+    shape-rendering: crispEdges;
+  }
+  .x path {
+  	display: none;
+  }
+  .toolTip {
+    text-align: center;
+    color: white;
+    background: black;
+    padding: .5em;
+    border-radius: 2px;
+    box-shadow: 0px 0px 2px 0px #a6a6a6;
+    opacity: 0.8;
+    position: absolute;
+    font-family: Helvetica;
+    font-size: 12px;
+    display: none;
+  }
+  </style>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+  <!-- <svg width="960" height="500"></svg> -->
+  <svg></svg>
+  <script>
+  function getVolume(data){
+    year_data = [0,0,0,0,0];
+    amt_data = [0,0,0,0,0];
+    defendant_dots = [];
+    total_defendants = 0;
     data.forEach(function(d){
-      svg.append("text")
-      .style("font-family", "Helvetica")
-      .style("font-size", "14px")
-      .attr("x", 20+x(d.num_defendants)+"px")
-      .attr("y", 22+y(d.bucket)+"px")
-      .text("$"+(d.amt/10**6).toFixed(1)+" Million");
+      total_defendants += 1;
+      name = d[0];
+      years = d[1];
+      amt = d[2];
 
-      bucket_to_width_mapping[d.bucket] = x(d.num_defendants);
+      if (years <= 5){
+          year_data[0] += 1;
+          if (amt){
+              amt_data[0] += amt;
+          }
+          bucket = "< 5 Years";
+          cy = offset + y(bucket);
+          defendant_dots.push({
+            "bucket": bucket,
+            "name": "Debtor "+total_defendants,
+            "amt": amt, "yrs": years,
+            "fill": "red"
+          });
+      } else if (years > 5 && years <= 10) {
+          year_data[1] += 1;
+          if (amt) {
+              amt_data[1] += amt;
+          }
+          bucket = "5 - 10 Years";
+          defendant_dots.push({
+            "bucket": bucket,
+            "name": "Debtor "+total_defendants,
+            "amt": amt, "yrs": years,
+            "fill": "blue"
+          });
+      } else if (years > 10 && years <= 15) {
+          year_data[2] += 1;
+          if (amt) {
+              amt_data[2] += amt;
+          }
+          bucket = "10 - 15 Years";
+          defendant_dots.push({
+            "bucket": bucket,
+            "name": "Debtor "+total_defendants,
+            "amt": amt, "yrs": years,
+            "fill": "purple"
+          });
+      } else if (years > 15 && years <= 20) {
+          year_data[3] += 1;
+          if (amt) {
+              amt_data[3] += amt;
+          }
+          bucket = "15 - 20 Years";
+          defendant_dots.push({
+            "bucket": bucket,
+            "name": "Debtor "+total_defendants,
+            "amt": amt, "yrs": years,
+            "fill": "orange"
+          });
+      } else if (years > 20) {
+          year_data[4] += 1;
+          if (amt) {
+              amt_data[4] += amt;
+          }
+          bucket = "> 20 years";
+          defendant_dots.push({
+            "bucket": bucket,
+            "name": "Debtor "+total_defendants,
+            "amt": amt, "yrs": years,
+            "fill": "green"
+          });
+      }
+    });
+    year_and_amt_data = [
+      {"bucket": "> 20 years", "num_defendants": year_data[4], "amt": amt_data[4]},
+      {"bucket": "15 - 20 Years", "num_defendants": year_data[3], "amt": amt_data[3]},
+      {"bucket": "10 - 15 Years", "num_defendants": year_data[2], "amt": amt_data[2]},
+      {"bucket": "5 - 10 Years", "num_defendants": year_data[1], "amt": amt_data[1]},
+      {"bucket": "< 5 Years", "num_defendants": year_data[0], "amt": amt_data[0]}
+    ];
+    return [year_and_amt_data, defendant_dots];
+  }
+
+  var svg = d3.select("svg");
+  svg.attr("width", Math.min(960, 0.9*document.body.clientWidth)+"px")
+  .attr("height", Math.min(500, 0.9*window.innerHeight)+"px");
+
+  var margin = {top: 20, right: 20, bottom: 30, left: 80, barmargin: 3},
+      width = +parseInt(svg.attr("width")) - margin.left - margin.right,
+      height = +parseInt(svg.attr("height")) - margin.top - margin.bottom,
+      radius = 2,
+      offset = 21;
+
+  var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+
+  var x = d3.scaleLinear().range([0, width]);
+  var y = d3.scaleBand().range([height, 0]);
+
+  var g = svg.append("g")
+  		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  d3.json("cases_length_amt_data.json", function(error, data) {
+    	if (error) throw error;
+
+      [data, defendant_dots] = getVolume(data);
+
+    	x.domain([0, d3.max(data, function(d) { return d.num_defendants; })]);
+      y.domain(data.map(function(d) { return d.bucket; })).padding(0.1);
+
+      g.append("g")
+          .attr("class", "x axis")
+         	.attr("transform", "translate(0," + height + ")")
+        	.call(d3.axisBottom(x).ticks(5).tickFormat(function(d) { return parseInt(d); }).tickSizeInner([-height]));
+
+      g.append("g")
+          .attr("class", "y axis")
+          .call(d3.axisLeft(y));
+
+      g.selectAll(".bar")
+          .data(data)
+          .enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", 0)
+          .attr("height", y.bandwidth())
+          .attr("y", function(d) { return y(d.bucket); })
+          .attr("width", function(d) { return x(d.num_defendants); });
+
+      bucket_to_width_mapping = {};
+
+      data.forEach(function(d){
+        svg.append("text")
+        .style("font-family", "Helvetica")
+        .style("font-size", Math.min(13, document.body.clientWidth/60)+"px")
+        .attr("x", 20+x(d.num_defendants)+"px")
+        .attr("y", 22+y(d.bucket)+"px")
+        .text("$"+(d.amt/10**6).toFixed(1)+" Million");
+
+        bucket_to_width_mapping[d.bucket] = x(d.num_defendants);
+      });
+
+    svg.append("text")
+    .style("font-family", "Helvetica")
+    .style("font-size", Math.min(24, document.body.clientWidth/40)+"px")
+    .attr("x", (margin.left + document.body.clientWidth)/3+"px")
+    .attr("y", Math.min(19, window.innerHeight/27)+"px")
+    .text("Open Cases");
+
+    svg.append("text")
+    .style("font-family", "Helvetica")
+    .style("font-size", Math.min(16, document.body.clientWidth/50)+"px")
+    .attr("x", (margin.left + document.body.clientWidth)/3+"px")
+    .attr("y", height + 50 + "px")
+    .text("Number of Cases");
+
+    defendant_dots.forEach(function(dot){
+      svg.append("circle")
+        .attr("cx", margin.left + margin.barmargin + (Math.random() * (bucket_to_width_mapping[dot.bucket]-2*margin.barmargin)) + "px")
+        .attr("cy", offset + y(dot.bucket) + margin.barmargin + (Math.random() * (y.bandwidth()-2*margin.barmargin)) + "px")
+        .attr("r", radius+"px")
+        .style("fill", dot.fill)
+        .style("opacity", 0.5)
+        .on("mousemove", function(){
+            tooltip
+              .style("left", d3.event.pageX - 50 + "px")
+              .style("top", d3.event.pageY - 70 + "px")
+              .style("display", "inline-block")
+              .html((dot.name) + "<br> Owed CAC: $" + (dot.amt) + "<br> Case Open For: " + dot.yrs + " Years");
+        })
+    		.on("mouseout", function(d){ tooltip.style("display", "none");});
     });
 
-  svg.append("text")
-  .style("font-family", "Helvetica")
-  .style("font-size", "24px")
-  .attr("x", width/2+12+"px")
-  .attr("y", "19px")
-  .text("Open Cases");
-
-  svg.append("text")
-  .style("font-family", "Helvetica")
-  .style("font-size", "16px")
-  .attr("x", width/2+16+"px")
-  .attr("y", height + 50 + "px")
-  .text("Number of Cases");
-
-  defendant_dots.forEach(function(dot){
-    svg.append("circle")
-      .attr("cx", margin.left + margin.barmargin + (Math.random() * (bucket_to_width_mapping[dot.bucket]-2*margin.barmargin)) + "px")
-      .attr("cy", offset + y(dot.bucket) + margin.barmargin + (Math.random() * (y.bandwidth()-2*margin.barmargin)) + "px")
-      .attr("r", radius+"px")
-      .style("fill", dot.fill)
-      .style("opacity", 0.5)
-      .on("mousemove", function(){
-          tooltip
-            .style("left", d3.event.pageX - 50 + "px")
-            .style("top", d3.event.pageY - 70 + "px")
-            .style("display", "inline-block")
-            .html((dot.name) + "<br> Owed CAC: $" + (dot.amt) + "<br> Case Open For: " + dot.yrs + " Years");
-      })
-  		.on("mouseout", function(d){ tooltip.style("display", "none");});
   });
-
-});
-</script>
+  </script>
+</body>
