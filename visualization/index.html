@@ -35,11 +35,12 @@
     display: none;
   }
   </style>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 <body>
   <svg></svg>
   <script>
+
   function getVolume(data){
     year_data = [0,0,0,0,0];
     amt_data = [0,0,0,0,0];
@@ -56,132 +57,157 @@
           if (amt){
               amt_data[0] += amt;
           }
-          bucket = "< 5 Years";
-          cy = offset + y(bucket);
-          defendant_dots.push({
-            "bucket": bucket,
-            "name": "Debtor "+total_defendants,
-            "amt": amt, "yrs": years,
-            "fill": "red"
-          });
+          if (!on_mobile){
+            bucket = "< 5 Years";
+            defendant_dots.push({
+              "bucket": bucket,
+              "name": "Debtor "+total_defendants,
+              "amt": amt, "yrs": years,
+              "fill": "red"
+            });
+          }
       } else if (years > 5 && years <= 10) {
           year_data[1] += 1;
           if (amt) {
               amt_data[1] += amt;
           }
-          bucket = "5 - 10 Years";
-          defendant_dots.push({
-            "bucket": bucket,
-            "name": "Debtor "+total_defendants,
-            "amt": amt, "yrs": years,
-            "fill": "blue"
-          });
+          if (!on_mobile){
+            bucket = "5 - 10 Years";
+            defendant_dots.push({
+              "bucket": bucket,
+              "name": "Debtor "+total_defendants,
+              "amt": amt, "yrs": years,
+              "fill": "blue"
+            });
+          }
       } else if (years > 10 && years <= 15) {
           year_data[2] += 1;
           if (amt) {
               amt_data[2] += amt;
           }
-          bucket = "10 - 15 Years";
-          defendant_dots.push({
-            "bucket": bucket,
-            "name": "Debtor "+total_defendants,
-            "amt": amt, "yrs": years,
-            "fill": "purple"
-          });
+          if (!on_mobile){
+            bucket = "10 - 15 Years";
+            defendant_dots.push({
+              "bucket": bucket,
+              "name": "Debtor "+total_defendants,
+              "amt": amt, "yrs": years,
+              "fill": "purple"
+            });
+          }
       } else if (years > 15 && years <= 20) {
           year_data[3] += 1;
           if (amt) {
               amt_data[3] += amt;
           }
-          bucket = "15 - 20 Years";
-          defendant_dots.push({
-            "bucket": bucket,
-            "name": "Debtor "+total_defendants,
-            "amt": amt, "yrs": years,
-            "fill": "orange"
-          });
+          if (!on_mobile){
+            bucket = "15 - 20 Years";
+            defendant_dots.push({
+              "bucket": bucket,
+              "name": "Debtor "+total_defendants,
+              "amt": amt, "yrs": years,
+              "fill": "orange"
+            });
+          }
       } else if (years > 20) {
           year_data[4] += 1;
           if (amt) {
               amt_data[4] += amt;
           }
-          bucket = "> 20 years";
-          defendant_dots.push({
-            "bucket": bucket,
-            "name": "Debtor "+total_defendants,
-            "amt": amt, "yrs": years,
-            "fill": "green"
-          });
+          if (!on_mobile){
+            bucket = "> 20 years";
+            defendant_dots.push({
+              "bucket": bucket,
+              "name": "Debtor "+total_defendants,
+              "amt": amt, "yrs": years,
+              "fill": "green"
+            });
+          }
       }
     });
     year_and_amt_data = [
-      {"bucket": "> 20 years", "num_defendants": year_data[4], "amt": amt_data[4]},
-      {"bucket": "15 - 20 Years", "num_defendants": year_data[3], "amt": amt_data[3]},
-      {"bucket": "10 - 15 Years", "num_defendants": year_data[2], "amt": amt_data[2]},
-      {"bucket": "5 - 10 Years", "num_defendants": year_data[1], "amt": amt_data[1]},
-      {"bucket": "< 5 Years", "num_defendants": year_data[0], "amt": amt_data[0]}
+      {"fill": "green", "bucket": "> 20 years", "num_defendants": year_data[4], "amt": amt_data[4]},
+      {"fill": "orange", "bucket": "15 - 20 Years", "num_defendants": year_data[3], "amt": amt_data[3]},
+      {"fill": "purple", "bucket": "10 - 15 Years", "num_defendants": year_data[2], "amt": amt_data[2]},
+      {"fill": "blue", "bucket": "5 - 10 Years", "num_defendants": year_data[1], "amt": amt_data[1]},
+      {"fill": "red", "bucket": "< 5 Years", "num_defendants": year_data[0], "amt": amt_data[0]}
     ];
     return [year_and_amt_data, defendant_dots];
   }
 
-  var svg = d3.select("svg");
-  svg.attr("width", Math.min(960, 0.9*document.body.clientWidth)+"px")
-  .attr("height", Math.min(500, 0.9*window.innerHeight)+"px");
+  function draw(data, defendant_dots){
+    svg.attr("width", Math.min(960, 0.9*document.body.clientWidth)+"px")
+    .attr("height", Math.min(500, 0.9*window.innerHeight)+"px");
 
-  var margin = {top: 20, right: 20, bottom: 30, left: 80, barmargin: 3},
-      width = +parseInt(svg.attr("width")) - margin.left - margin.right,
-      height = +parseInt(svg.attr("height")) - margin.top - margin.bottom,
-      radius = 2,
-      offset = 21;
+    var width = +parseInt(svg.attr("width")) - margin.left - margin.right,
+        height = +parseInt(svg.attr("height")) - margin.top - margin.bottom;
 
-  var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+    if (on_mobile){
+      width = 0.9*width;
+      height = 0.75*height;
+    }
 
-  var x = d3.scaleLinear().range([0, width]);
-  var y = d3.scaleBand().range([height, 0]);
+    var x = d3.scaleLinear().range([0, width]);
+    var y = d3.scaleBand().range([height, 0]);
 
-  var g = svg.append("g")
-  		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    x.domain([0, d3.max(data, function(d) { return d.num_defendants; })]);
+    y.domain(data.map(function(d) { return d.bucket; })).padding(0.1);
 
-  d3.json("cases_length_amt_data.json", function(error, data) {
-    	if (error) throw error;
+    g.append("g")
+    .attr("class", "x axis")
+    .attr("id", "g1")
+   	.attr("transform", "translate(0," + height + ")")
+  	.call(d3.axisBottom(x).ticks(5).tickFormat(function(d) { return parseInt(d); }).tickSizeInner([-height]));
 
-      [data, defendant_dots] = getVolume(data);
+    g.append("g")
+        .attr("class", "y axis")
+        .attr("id", "g2")
+        .call(d3.axisLeft(y));
 
-    	x.domain([0, d3.max(data, function(d) { return d.num_defendants; })]);
-      y.domain(data.map(function(d) { return d.bucket; })).padding(0.1);
-
-      g.append("g")
-          .attr("class", "x axis")
-         	.attr("transform", "translate(0," + height + ")")
-        	.call(d3.axisBottom(x).ticks(5).tickFormat(function(d) { return parseInt(d); }).tickSizeInner([-height]));
-
-      g.append("g")
-          .attr("class", "y axis")
-          .call(d3.axisLeft(y));
-
+    if (on_mobile){
       g.selectAll(".bar")
           .data(data)
           .enter().append("rect")
+          // .attr("id", function(d){
+          //   return d.bucket;
+          // })
+          .attr("class", "bar")
+          .attr("x", 0)
+          .attr("height", y.bandwidth())
+          .attr("y", function(d) { return y(d.bucket); })
+          .attr("width", function(d) { return x(d.num_defendants); })
+          .style("opacity", 0.4)
+          .style("fill", function(d) { return d.fill; });
+
+    } else {
+      g.selectAll(".bar")
+          .data(data)
+          .enter().append("rect")
+          // .attr("id", function(d){
+          //   return d.bucket;
+          // })
           .attr("class", "bar")
           .attr("x", 0)
           .attr("height", y.bandwidth())
           .attr("y", function(d) { return y(d.bucket); })
           .attr("width", function(d) { return x(d.num_defendants); });
+    }
 
-      bucket_to_width_mapping = {};
+    bucket_to_width_mapping = {};
 
-      data.forEach(function(d){
-        svg.append("text")
-        .style("font-family", "Helvetica")
-        .style("font-size", Math.min(13, document.body.clientWidth/60)+"px")
-        .attr("x", 20+x(d.num_defendants)+"px")
-        .attr("y", 22+y(d.bucket)+"px")
-        .text("$"+(d.amt/10**6).toFixed(1)+" Million");
+    data.forEach(function(d, i){
+      svg.append("text")
+      .attr("id", "amount"+i)
+      .style("font-family", "Helvetica")
+      .style("font-size", Math.min(13, document.body.clientWidth/60)+"px")
+      .attr("x", 20+x(d.num_defendants)+"px")
+      .attr("y", 22+y(d.bucket)+"px")
+      .text("$"+(d.amt/10**6).toFixed(1)+" Million");
 
-        bucket_to_width_mapping[d.bucket] = x(d.num_defendants);
-      });
+      bucket_to_width_mapping[d.bucket] = x(d.num_defendants);
+    });
 
     svg.append("text")
+    .attr("id", "t2")
     .style("font-family", "Helvetica")
     .style("font-size", Math.min(24, document.body.clientWidth/40)+"px")
     .attr("x", (margin.left + document.body.clientWidth)/3+"px")
@@ -189,29 +215,116 @@
     .text("Open Cases");
 
     svg.append("text")
+    .attr("id", "t3")
     .style("font-family", "Helvetica")
     .style("font-size", Math.min(16, document.body.clientWidth/50)+"px")
     .attr("x", (margin.left + document.body.clientWidth)/3+"px")
     .attr("y", height + 50 + "px")
     .text("Number of Cases");
 
-    defendant_dots.forEach(function(dot){
-      svg.append("circle")
-        .attr("cx", margin.left + margin.barmargin + (Math.random() * (bucket_to_width_mapping[dot.bucket]-2*margin.barmargin)) + "px")
-        .attr("cy", offset + y(dot.bucket) + margin.barmargin + (Math.random() * (y.bandwidth()-2*margin.barmargin)) + "px")
-        .attr("r", radius+"px")
-        .style("fill", dot.fill)
-        .style("opacity", 0.5)
-        .on("mousemove", function(){
-            tooltip
-              .style("left", d3.event.pageX - 50 + "px")
-              .style("top", d3.event.pageY - 70 + "px")
-              .style("display", "inline-block")
-              .html((dot.name) + "<br> Owed CAC: $" + (dot.amt) + "<br> Case Open For: " + dot.yrs + " Years");
-        })
-    		.on("mouseout", function(d){ tooltip.style("display", "none");});
+    if (!on_mobile){
+      defendant_dots.forEach(function(dot, i){
+        svg.append("circle")
+          .attr("id", "c"+i)
+          .attr("cx", margin.left + margin.barmargin + (Math.random() * (bucket_to_width_mapping[dot.bucket]-2*margin.barmargin)) + "px")
+          .attr("cy", offset + y(dot.bucket) + margin.barmargin + (Math.random() * (y.bandwidth()-2*margin.barmargin)) + "px")
+          .attr("r", radius+"px")
+          .style("fill", dot.fill)
+          .style("opacity", 0.5)
+          .on("mousemove", function(){
+              tooltip
+                .style("left", d3.event.pageX - 50 + "px")
+                .style("top", d3.event.pageY - 70 + "px")
+                .style("display", "inline-block")
+                .html((dot.name) + "<br> Owed CAC: $" + (dot.amt) + "<br> Case Open For: " + dot.yrs + " Years");
+          })
+          .on("mouseout", function(d){ tooltip.style("display", "none");});
+      });
+    }
+  }
+
+  function redraw(data, defendant_dots){
+    svg.attr("width", Math.min(960, 0.9*document.body.clientWidth)+"px")
+    .attr("height", Math.min(500, 0.9*window.innerHeight)+"px");
+
+    var width = +parseInt(svg.attr("width")) - margin.left - margin.right,
+        height = +parseInt(svg.attr("height")) - margin.top - margin.bottom;
+
+    var x = d3.scaleLinear().range([0, width]);
+    var y = d3.scaleBand().range([height, 0]);
+
+    x.domain([0, d3.max(data, function(d) { return d.num_defendants; })]);
+    y.domain(data.map(function(d) { return d.bucket; })).padding(0.1);
+
+    g.select("g#g1")
+   	.attr("transform", "translate(0," + height + ")")
+  	.call(d3.axisBottom(x).ticks(5).tickFormat(function(d) { return parseInt(d); }).tickSizeInner([-height]));
+
+    g.select("g#g2")
+    .call(d3.axisLeft(y));
+
+    g.selectAll("rect")
+    .attr("height", y.bandwidth())
+    .attr("y", function(d) { return y(d.bucket); })
+    .attr("width", function(d) { return x(d.num_defendants); });
+
+    bucket_to_width_mapping = {};
+
+    data.forEach(function(d, i){
+      svg.select("text#amount"+i)
+      .style("font-size", Math.min(13, document.body.clientWidth/60)+"px")
+      .attr("x", 20+x(d.num_defendants)+"px")
+      .attr("y", 22+y(d.bucket)+"px");
+
+      bucket_to_width_mapping[d.bucket] = x(d.num_defendants);
     });
 
+    svg.select("text#t2")
+    .style("font-size", Math.min(24, document.body.clientWidth/40)+"px")
+    .attr("x", (margin.left + document.body.clientWidth)/3+"px")
+    .attr("y", Math.min(19, window.innerHeight/27)+"px");
+
+    svg.select("text#t3")
+    .style("font-size", Math.min(16, document.body.clientWidth/50)+"px")
+    .attr("x", (margin.left + document.body.clientWidth)/3+"px")
+    .attr("y", height + 50 + "px");
+
+    if (!on_mobile){
+      defendant_dots.forEach(function(dot, i){
+        svg.select("circle#c"+i)
+          .attr("cx", margin.left + margin.barmargin + (Math.random() * (bucket_to_width_mapping[dot.bucket]-2*margin.barmargin)) + "px")
+          .attr("cy", offset + y(dot.bucket) + margin.barmargin + (Math.random() * (y.bandwidth()-2*margin.barmargin)) + "px")
+      });
+    }
+  }
+
+  var on_mobile = navigator.userAgent.toLowerCase().includes("mobile");
+
+  var margin = {top: 20, right: 20, bottom: 30, left: 80, barmargin: 3},
+      radius = 2,
+      offset = 21;
+
+  var svg = d3.select("svg");
+  var g = svg.append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+
+  var year_and_amt_data = null,
+      defendant_dots = null;
+
+  d3.json("cases_length_amt_data.json", function(error, data) {
+    	if (error) throw error;
+  }).then(function(data){
+    volume_data = getVolume(data);
+    year_and_amt_data = volume_data[0];
+    defendant_dots = volume_data[1];
+    draw(year_and_amt_data, defendant_dots);
+    // Redraw based on the new size whenever the browser window is resized.
+    window.addEventListener("resize", function(){
+      redraw(year_and_amt_data, defendant_dots);
+    });
   });
+
   </script>
 </body>
